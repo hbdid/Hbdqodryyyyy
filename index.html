@@ -164,13 +164,36 @@
             margin-bottom: 20px; line-height: 1.6;
         }
         .custom-alert-box .btn { color: var(--title-color); }
+        
+        /* KODE BARU: CSS untuk Tombol Musik */
+        #interaction-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        #playButton {
+            font-size: 1.2rem;
+            padding: 15px 35px;
+        }
     </style>
 </head>
 <body>
     
-    <audio src="Hbdqodry.mp3" autoplay loop></audio>
+    <audio id="backgroundMusic" src="Hbdqodry.mp3" loop></audio>
 
-    <div class="container">
+    <div id="interaction-overlay">
+        <button id="playButton" class="btn">Kasih Ucapan hbd </button>
+    </div>
+
+    <div class="container" style="display: none;">
         
         <div id="full-card-to-save">
             <div class="birthday-card">
@@ -205,7 +228,7 @@
         </div>
         
         <footer class="copyright">
-            <p>&copy; <span id="currentYear"></span>  Made By: Appwebiatecth - All Right Reserved.</p>
+            <p>&copy; <span id="currentYear"></span>  Made By: Appwebiatecth & Studioofficial - All Right Reserved.</p>
         </footer>
         
     </div>
@@ -218,9 +241,23 @@
     </div>
 
     <script>
-        // =================================================================
-        // PERUBAHAN 2: Konfigurasi Firebase baru Anda
-        // =================================================================
+        // KODE BARU UNTUK MEMUTAR MUSIK
+        document.addEventListener('DOMContentLoaded', () => {
+            const playButton = document.getElementById('playButton');
+            const backgroundMusic = document.getElementById('backgroundMusic');
+            const mainContainer = document.querySelector('.container');
+            const overlay = document.getElementById('interaction-overlay');
+
+            playButton.addEventListener('click', () => {
+                backgroundMusic.play().catch(error => {
+                    console.log("Autoplay dicegah oleh browser, tapi akan main setelah user klik.");
+                });
+                overlay.style.display = 'none';
+                mainContainer.style.display = 'block';
+            });
+        });
+
+        // Konfigurasi Firebase Anda
         const firebaseConfig = {
             apiKey: "AIzaSyBV84LBkoQMOfN9rF3nWNdL3KE26Si0Fhs",
             authDomain: "hbdqodrybar.firebaseapp.com",
@@ -232,13 +269,10 @@
         };
         firebase.initializeApp(firebaseConfig);
 
-        // PERUBAHAN 3: Menggunakan Firestore
+        // Menggunakan Firestore
         const db = firebase.firestore();
         const wishesRef = db.collection('wishes');
 
-        // =================================================================
-        // SCRIPT UTAMA HALAMAN
-        // =================================================================
         const wishesContainer = document.getElementById('wishes-container');
         const wishCountSpan = document.getElementById('wishCount');
         const customAlert = document.getElementById('customAlert');
@@ -255,7 +289,6 @@
             wishesContainer.appendChild(wishCard);
         }
 
-        // PERUBAHAN 4: Fungsi kirim ucapan versi Firestore
         function submitWish() {
             let senderName = document.getElementById('senderName').value.trim();
             const message = document.getElementById('customMessage').value.trim();
@@ -285,9 +318,8 @@
             });
         }
         
-        // PERUBAHAN 5: Listener real-time versi Firestore
         wishesRef.orderBy('timestamp', 'asc').onSnapshot((snapshot) => {
-            wishesContainer.innerHTML = ''; // Kosongkan kontainer sebelum render ulang
+            wishesContainer.innerHTML = '';
             const totalWishes = snapshot.size;
             wishCountSpan.textContent = totalWishes;
             
@@ -295,7 +327,6 @@
                 const wish = doc.data();
                 let formattedTimestamp = 'Baru saja';
                 
-                // Konversi timestamp Firestore ke format tanggal yang bisa dibaca
                 if (wish.timestamp && wish.timestamp.toDate) {
                     const date = wish.timestamp.toDate();
                     formattedTimestamp = date.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) + ' - ' + date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -305,9 +336,6 @@
             });
         });
 
-        // =================================================================
-        // FUNGSI BAWAAN (TIDAK BERUBAH)
-        // =================================================================
         function showCustomAlert(message) {
             customAlertMessage.textContent = message;
             customAlert.style.display = 'flex';
